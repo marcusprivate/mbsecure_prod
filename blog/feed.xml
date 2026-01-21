@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+	<channel>
+		<title>MB Secure Blog</title>
+		<link>https://mbsecure.nl/blog/</link>
+		<atom:link href="https://mbsecure.nl/blog/feed.xml" rel="self" type="application/rss+xml"/>
+		<language>en-us</language>
+		<lastBuildDate>Tue, 21 Apr 2020 00:00:00 +0000</lastBuildDate>
+		<managingEditor>marcus@mbsecure.nl (Marcus Bakker)</managingEditor>
+		<webMaster>marcus@mbsecure.nl (Marcus Bakker)</webMaster>
+		
+		<item>
+			<title>The Sources for Hunts and How to Prioritise</title>
+			<link>https://mbsecure.nl/blog/2020/4/the-sources-for-hunts-and-how-to-prioritise.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2020/4/the-sources-for-hunts-and-how-to-prioritise.html</guid>
+			<pubDate>Tue, 21 Apr 2020 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>When performing threat hunting it is important to select the right source for creating your hunt hypotheses. This will help you focus on hunts that are most relevant to your organisation.</description>
+		</item>
+		
+		<item>
+			<title>KQL Cheat Sheet</title>
+			<link>https://mbsecure.nl/blog/2019/12/kql-cheat-sheet.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2019/12/kql-cheat-sheet.html</guid>
+			<pubDate>Tue, 10 Dec 2019 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>A comprehensive cheat sheet for Kusto Query Language (KQL) to help with threat hunting and security analytics in Azure Sentinel and other Microsoft products.</description>
+		</item>
+		
+		<item>
+			<title>How to integrate EQL into your tooling</title>
+			<link>https://mbsecure.nl/blog/2019/10/how-to-integrate-eql-into-your-tooling.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2019/10/how-to-integrate-eql-into-your-tooling.html</guid>
+			<pubDate>Wed, 02 Oct 2019 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Learn how to integrate the Event Query Language (EQL) from Endgame into your own Python tooling for threat hunting and detection engineering.</description>
+		</item>
+		
+		<item>
+			<title>DeTT&amp;CT: Mapping your Blue Team to MITRE ATT&amp;CK™</title>
+			<link>https://mbsecure.nl/blog/2019/5/dettact-mapping-your-blue-team-to-mitre-attack.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2019/5/dettact-mapping-your-blue-team-to-mitre-attack.html</guid>
+			<pubDate>Wed, 08 May 2019 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Learn how DeTT&amp;CT helps blue teams map data sources, visibility, and detection coverage to MITRE ATT&amp;CK for improved cyber defence.</description>
+		</item>
+		
+		<item>
+			<title>TaHiTI - Threat Hunting Methodology</title>
+			<link>https://mbsecure.nl/blog/2018/12/tahiti-threat-hunting-methodology.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/12/tahiti-threat-hunting-methodology.html</guid>
+			<pubDate>Fri, 21 Dec 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>TaHiTI (Targeted Hunting integrating Threat Intelligence) is a threat hunting methodology developed in collaboration with Dutch financial institutions.</description>
+		</item>
+		
+		<item>
+			<title>OPSEC for Blue Teams - Sandboxes &amp; Secure Communications</title>
+			<link>https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-3.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-3.html</guid>
+			<pubDate>Fri, 28 Sep 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Part 3 of the OPSEC for Blue Teams series covering sandboxes, secure communications, and information sharing when dealing with targeted attacks.</description>
+		</item>
+		
+		<item>
+			<title>OPSEC for Blue Teams - Testing PassiveTotal &amp; VirusTotal</title>
+			<link>https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-2.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-2.html</guid>
+			<pubDate>Thu, 27 Sep 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Part 2 of the OPSEC for Blue Teams series testing PassiveTotal and VirusTotal for signals that can be picked up by adversaries.</description>
+		</item>
+		
+		<item>
+			<title>OPSEC for Blue Teams - Losing Defender's Advantage</title>
+			<link>https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-1.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-1.html</guid>
+			<pubDate>Wed, 26 Sep 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Part 1 of the OPSEC for Blue Teams series covering the risk of alerting adversaries and OPSEC for getting context and OSINT on domains and IPs.</description>
+		</item>
+		
+		<item>
+			<title>Bypass client-side generated HTTP security headers</title>
+			<link>https://mbsecure.nl/blog/2018/7/bypass-client-side-generated-http-security-headers.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/7/bypass-client-side-generated-http-security-headers.html</guid>
+			<pubDate>Wed, 11 Jul 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Learn how to bypass client-side generated HTTP security headers during penetration testing using Burp Suite extensions.</description>
+		</item>
+		
+		<item>
+			<title>Hunting with JA3</title>
+			<link>https://mbsecure.nl/blog/2018/06/hunting-with-ja3.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/06/hunting-with-ja3.html</guid>
+			<pubDate>Wed, 20 Jun 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Learn how JA3 TLS fingerprinting can be used in Threat Hunting to identify malicious PowerShell and detect C2 channels.</description>
+		</item>
+		
+		<item>
+			<title>Volatility: proxies and network traffic</title>
+			<link>https://mbsecure.nl/blog/2018/03/volatility-proxies-and-network-traffic.html</link>
+			<guid isPermaLink="true">https://mbsecure.nl/blog/2018/03/volatility-proxies-and-network-traffic.html</guid>
+			<pubDate>Mon, 19 Mar 2018 00:00:00 +0000</pubDate>
+			<dc:creator>Marcus Bakker</dc:creator>
+			<description>Learn how to use Volatility and strings to identify which process is communicating with a suspicious IP when dealing with non-transparent proxies.</description>
+		</item>
+		
+	</channel>
+</rss>

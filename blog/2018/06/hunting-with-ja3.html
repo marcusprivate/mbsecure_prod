@@ -1,0 +1,223 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>Hunting with JA3 - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Learn how JA3 TLS fingerprinting can be used in Threat Hunting to identify malicious PowerShell and detect C2 channels." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="Hunting with JA3 - MB Secure" />
+		<meta property="og:description" content="Learn how JA3 TLS fingerprinting can be used in Threat Hunting to identify malicious PowerShell and detect C2 channels." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2018/06/hunting-with-ja3.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2018/06/hunting-with-ja3.html" />
+		<meta property="article:published_time" content="2018-06-20" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "Hunting with JA3",
+			"datePublished": "2018-06-20",
+			"dateModified": "2018-06-20",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"description": "Learn how JA3 TLS fingerprinting can be used in Threat Hunting to identify malicious PowerShell and detect C2 channels."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">20 June 2018</span>
+							</div>
+							<h1>Hunting with JA3</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">Within this blog post I will explain how JA3 can be used in Threat Hunting. I will discuss a relative simple hunt on a possible way to identify malicious PowerShell using JA3 and a more advanced hunt that involves the use of Darktrace and JA3.</p>
+
+							<h2>What is JA3?</h2>
+
+							<h3>Introduction</h3>
+
+							<p>JA3 is a method to fingerprint a SSL/TLS client connection based on fields in the Client Hello message from the SSL/TLS handshake. The following fields within the Client Hello message are used: SSL/TLS Version, Accepted Ciphers, List of Extensions, Elliptic Curves, and Elliptic Curve Formats. The end result is a MD5 hash serving as the purpose for the fingerprint. Because the SSL/TLS handshake is sent in clear text we can use it to fingerprint any client application using the information within the Client Hello message.</p>
+
+							<p>At the time of writing JA3 is being supported by:</p>
+
+							<ul>
+								<li>Bro</li>
+								<li>Darktrace</li>
+								<li>MISP</li>
+								<li>Moloch</li>
+								<li>NGiNX</li>
+								<li>RedSocks</li>
+								<li>Trisul NSM</li>
+								<li>Python script that accepts a PCAP file (you can find this one on the GitHub page of JA3)</li>
+							</ul>
+
+							<p>For more detailed info on JA3 see: <a href="https://github.com/salesforce/ja3" target="_blank" rel="noopener noreferrer">https://github.com/salesforce/ja3</a></p>
+
+							<h3>Uniqueness of the Fingerprint</h3>
+
+							<p>It is not uncommon to see that a particular JA3 hash is also being used by another type of application. For example: applications written in Java tends to result in the same JA3. You will also notice, depending on the Windows version, when looking at PowerShell that the same JA3 hash is also being used by the Windows Background Intelligence Transfer Service (BITS).</p>
+
+							<p>It is important to take collisions into account when performing investigations based on JA3 (please note I am not talking on hash collisions here). Still, JA3 can be very powerful when used for Threat Hunting and Incident Response.</p>
+
+							<h2>Hunting for Malicious PowerShell Using JA3</h2>
+
+							<h3>What is PowerShell Being Used For</h3>
+
+							<p>Why hunt for PowerShell? PowerShell is quite popular under adversaries for performing malicious activities. It is also very popular by system admins, but with of course a different end goal in mind. Commonly adversaries use PowerShell for:</p>
+
+							<ul>
+								<li>Downloaders to facilitate the second stage of infection by downloading additional malicious code such as a backdoor.</li>
+								<li>Running backdoors that are written in PowerShell (e.g. PowerShell Empire).</li>
+								<li>Post-exploitation toolkits such as PowerSploit.</li>
+							</ul>
+
+							<p>System administrators use it for:</p>
+
+							<ul>
+								<li>Automating system administration activities.</li>
+								<li>Far less common, compared to adversaries, for downloading files from the internet.</li>
+							</ul>
+
+							<h3>Why Hunt for PowerShell?</h3>
+
+							<p>The above stated examples of adversary activities performed using PowerShell, which make it very interesting from a security monitoring perspective to know when PowerShell communicates to the internet.</p>
+
+							<h3>Why Use JA3 and What to Take Into Account</h3>
+
+							<p>Other methods exist besides <code>Invoke-WebRequest</code> for communicating over the internet using PowerShell. I will use this one as an example.</p>
+
+							<p>When using the PowerShell cmdlet <code>Invoke-WebRequest</code> for communicating over the internet a User-Agent is sent containing PowerShell: <code>Mozilla/5.0 (Windows NT; Windows NT 6.3; en-US) WindowsPowerShell/4.0</code>. However, this can easily be changed by providing a custom User-Agent to let the traffic look more normal (<code>-UserAgent "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"</code>). That is why relying solely on the User-Agent is not good enough. Modifying the User-Agent is actively being done by malware.</p>
+
+							<p>A far more reliable way of identifying PowerShell that communicates to the internet is to have a look at its JA3 hash values. Yes, we have more than one single JA3 hash for PowerShell:</p>
+
+							<ul>
+								<li>The JA3 hash can differ between PowerShell versions. For example:
+									<ul>
+										<li>Windows 7 PowerShell 5.0: <code>05af1f5ca1b87cc9cc9b25185115607d</code></li>
+										<li>Windows 7 PowerShell 6.0: <code>36f7277af969a6947a61ae0b815907a1</code></li>
+									</ul>
+								</li>
+								<li>Differences in Windows versions:
+									<ul>
+										<li>Windows Server 2016 PowerShell 5.1: <code>235a856727c14dba889ddee0a38dd2f2</code></li>
+										<li>Windows 10 PowerShell 5.1: <code>54328bd36c14bd82ddaa0c04b25ed9ad</code></li>
+									</ul>
+								</li>
+								<li>There is a way of modifying the TLS version being send in the TLS Client Hello message and thereby having a different JA3 (<code>-SslProtocol</code> parameter in PowerShell v6 for <code>Invoke-WebRequest</code>).</li>
+								<li>When no domain name is involved with setting up the TLS connection, the Server Name Indication (SNI) extension is missing, hence a different JA3 hash.</li>
+								<li>Other methods of communicating to the internet using PowerShell can result in another JA3 hash value (e.g. when Windows BITS is used it can differ depending on the Windows version).</li>
+							</ul>
+
+							<p>As stated before, there can always be collisions with other client applications which have the same JA3 hash as being used for PowerShell. All should be taken into account when doing proper Threat Hunting.</p>
+
+							<h3>The Hunt</h3>
+
+							<p>Once we know which JA3 hashes can be seen in your environment, you can start hunting for interesting events. Expect to have collisions and therefore a way of picking out the notable events. A tactic here is to use stacking and look at the bottom of the stacked domain names (i.e. the domain names that occur least frequent). From their pivot to the associated URLs to spot possible malicious traffic. It will also help to enrich the events with the domain registration date and first start with looking at the youngest domain names. And you can add the date of first occurrence for the domain name within your IT Infrastructure to first check the relative new domain names. Of course, all depends on the capabilities of your tools. Be creative here to see what works best within your environment.</p>
+
+							<h2>JA3 Hunting with Darktrace</h2>
+
+							<p>Darktrace allows us to perform more advanced hunting with JA3 by employing some very useful metrics. They can be simple like the type of traffic (e.g. HTTPS) and more advanced like the rarity of a domain name within your environment. Metrics are used within Darktrace to build models. A model will have a set of conditions that need to be met before it triggers. In the terms of Darktrace a triggered model is called a model breach.</p>
+
+							<h3>Hunting Hypothesis → Model</h3>
+
+							<p>I will explain for one particular JA3 metric within Darktrace how this can be used with the following hunting hypothesis:</p>
+
+							<blockquote>
+								<p>An adversary infects a victim's endpoint with a backdoor that starts communicating over HTTPS to a command and control (C2) server by sending beacons on regular or irregular intervals.</p>
+							</blockquote>
+
+							<p>For this hypothesis the following characteristics are notable:</p>
+
+							<ul>
+								<li>We hope, and we can somewhat assume, that the backdoor will have JA3 hash which is not frequently seen within our IT infrastructure.</li>
+								<li>Communications to the C2 server's destination are rare within your environment. When not dealing with domain fronting for which the domain is not frequently being accessed by other systems within your environment.</li>
+								<li>The backdoor sends beacons to stay in contact with its C2 server.</li>
+							</ul>
+
+							<p>You can take the above characteristics to create a model. With this model we combine several weak indicators to increase our chances in detecting C2 channels. The important Darktrace metrics for this model are:</p>
+
+							<ul>
+								<li><strong>Unusual JA3 hash:</strong> for example you can set this to 90% only to look at rare JA3 hashes within your whole environment.</li>
+								<li><strong>Rare external endpoint:</strong> you can do something similar for this metric by only taking into account the rare destinations (IP or domain) within your environment.</li>
+								<li><strong>Beaconing score:</strong> this metric also expects a percentage. The higher the percentage the more regular the beaconing is occurring.</li>
+							</ul>
+
+							<p>Adversary backdoors often have a configurable jitter to prevent sending a beacon exactly every X minutes. For example, by introducing a variation of 40%. Resulting in the traffic to blend in with normal outgoing network traffic, and thereby harder to detect. Within Darktrace this is one of the factors that will result in a lower "Beaconing score" and therefore still detectable when combined with other metrics.</p>
+
+							<p>Happy hunting!</p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2018/7/bypass-client-side-generated-http-security-headers.html" class="prev"><span class="arrow">←</span> Bypass client-side generated HTTP security headers</a>
+							<a href="../../../blog/2018/03/volatility-proxies-and-network-traffic.html" class="next">Volatility: proxies and network traffic <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+	</body>
+</html>

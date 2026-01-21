@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>The sources for hunts and how to prioritise - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="An important aspect of threat hunting is the creation and the prioritisation of hunting hypotheses. Learn about the sources for hunts and factors that influence prioritisation." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="The sources for hunts and how to prioritise - MB Secure" />
+		<meta property="og:description" content="An important aspect of threat hunting is the creation and the prioritisation of hunting hypotheses." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2020/4/the-sources-for-hunts-and-how-to-prioritise.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2020/4/the-sources-for-hunts-and-how-to-prioritise.html" />
+		<meta property="og:image" content="https://mbsecure.nl/images/blog/hunt_prioritisation.png" />
+		<meta property="article:published_time" content="2020-04-21" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "The sources for hunts and how to prioritise",
+			"datePublished": "2020-04-21",
+			"dateModified": "2020-04-21",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"image": "https://mbsecure.nl/images/blog/hunt_prioritisation.png",
+			"description": "An important aspect of threat hunting is the creation and the prioritisation of hunting hypotheses."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-tomorrow.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-line-numbers.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-fix.css" />
+		<link rel="stylesheet" href="../../../assets/css/glightbox.min.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">21 April 2020</span>
+							</div>
+							<h1>The sources for hunts and how to prioritise</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">An important aspect of threat hunting is the creation and the prioritisation of hunting hypotheses. You want to avoid spending your valuable time into investigations that yield little result. Prioritisation can be used in two areas: the creation of new hunting hypotheses, and assigning priorities to the hypotheses on your backlog&mdash;assuming that you are storing ideas for hunts on a backlog.</p>
+
+							<p>The creation of hunts and prioritisation are cyclic processes. Executed hunts will lead to new insights influencing the creation process for new hunts. And when surrounding circumstances change a re-prioritisation of hunts on the backlog may be required.</p>
+
+							<p>In this blog, I will use the term hunt to refer to both hunting hypotheses and ideas (which require extra work to become a hypothesis).</p>
+
+							<h2>Zero Priority</h2>
+
+							<p>Before I go into the sources for hunts and the factors that play a role in the prioritisation, I wish to describe a basic rule: hunts that are linked to the bottom of the Pyramid of Pain have zero priority. That does not mean that they have no value, because they do. In a <a href="../../../blog/2018/12/tahiti-threat-hunting-methodology.html">previous blog</a> I explained why:</p>
+
+							<blockquote>
+								<p>The TaHiTI threat hunting methodology focuses only on the top 3 layers of the pyramid and also states that hunting on the lower layers is not considered to be threat hunting. But why are the lower thee layers far less interesting for threat hunting? Hunting on the lower 3 layers will not yield high value in hunting investigation. The simple reason is that lower layers are based on information from past targeted attacks and wide scale global threat actor campaigns. This information includes known bad domain names, IP addresses and hashes.</p>
+								<p>The source of this information comes from attacks that have already been carried out. Therefore, the chances are very small that this information will uncover targeted attacks against your company. This does not mean that checks on these lower layers should not be done. They should be automated where possible and where it makes sense.</p>
+							</blockquote>
+
+							<h2>The Sources for Hunts</h2>
+
+							<p>Where are ideas for hunts coming from? In other words, which sources are available for hunts? In the next chapter on prioritisation, we will make use of some of these sources:</p>
+
+							<ul>
+								<li>Results from red and purple teaming</li>
+								<li>Threat intelligence</li>
+								<li>Historical security incidents</li>
+								<li>Crown jewel analysis</li>
+								<li>Domain expertise</li>
+								<li>MITRE ATT&amp;CK<sup>®</sup></li>
+								<li>Threat hunting</li>
+							</ul>
+
+							<h3>Results from Red and Purple Teaming</h3>
+
+							<p>Red and purple team exercises can uncover attacker behaviours that were not well (or not at all) detected. In both types of these exercises, the identified attacker behaviours are excellent candidates for the creation of hunts because they are successful against your company.</p>
+
+							<h3>Threat Intelligence</h3>
+
+							<p>For the creation of hunts, threat intelligence should provide information on attacker behaviours which are relevant for your company. It is often beneficial to have this information on the level of a procedure (TT<strong>P</strong>) and not only on the technique itself (T<strong>T</strong>P). Depending on the technique, the latter is not always sufficient. Having this information communicated, if possible, using the ATT&amp;CK framework ensures a standard and structured way of communicating attacker behaviours.</p>
+
+							<p>There is much more to be said about threat intelligence as a source for hunts, and how to use it to guide your blue teaming efforts. Therefore it is more suitable for a separate blog.</p>
+
+							<h3>Historical Security Incidents</h3>
+
+							<p>Similar to results from red teaming exercises. Historical security incidents can uncover specific attacker behaviours that are successful against your company. Make sure you have insight into this information. For example, by tagging security incidents which showed a gap in the detection. After which you can periodically discuss these incidents with the involved incident handlers.</p>
+
+							<h3>Crown Jewel Analysis</h3>
+
+							<p>The results from crown jewel analysis (i.e. an asset with a high impact on the business when compromised) are used to create hunts. Crown jewel analysis requires close collaboration with other teams to uncover possible attack paths. These paths are used to develop new hunts, which are more specific to how your company has organised its IT infrastructure concerning technology and processes.</p>
+
+							<h3>Domain Expertise</h3>
+
+							<p>Hunts based on domain expert knowledge can be gained from different places or sub-sources:</p>
+
+							<ul>
+								<li>From members of the threat hunting team.</li>
+								<li>IT professionals within your company and by sitting together with other teams to combine expertise from different domains.</li>
+								<li>The public domain. Such as third party research, blogs, Twitter and white papers.</li>
+								<li>From hunters within other organisations by exchanging ideas one on one, or by sitting together in a knowledge exchange meeting.</li>
+							</ul>
+
+							<h3>MITRE ATT&amp;CK<sup>®</sup></h3>
+
+							<p>The ATT&amp;CK framework provides a valuable resource for attacker behaviours and thereby the creation of hunts. But, which technique are you going to hunt on? The <a href="https://github.com/rabobank-cdc/DeTTECT" target="_blank" rel="noopener noreferrer">DeTT&amp;CT framework</a> will be of good help here. Make use of threat intelligence to help to answer the question of which techniques are the most relevant for your company.</p>
+
+							<p>Although the following is not only applicable to ATT&amp;CK, it can provide great value to combine techniques, where necessary, to achieve better results from your hunting investigation. This approach allows you to create an attack scenario by combining (sub)-techniques on a procedure or technique level (T<strong>TP</strong>). You can also be more creative by including behaviour(s) not part of ATT&amp;CK, and thereby introducing non-ATT&amp;CK behaviour(s) derived from an adversarial tactic (<strong>T</strong>TP).</p>
+
+							<p>There is so much more to be said on ATT&amp;CK. I will mention some others only briefly to prevent this from becoming an ATT&amp;CK blog:</p>
+
+							<ul>
+								<li>Certain ATT&amp;CK techniques are very noisy when looked at in isolation.</li>
+								<li>ATT&amp;CK and its techniques should not be used as a checklist. There are several nuances to take into account. That is not to say it has great value to estimate your current level of detection using the ATT&amp;CK Matrix.</li>
+							</ul>
+
+							<h3>Threat Hunting</h3>
+
+							<p>While performing a threat hunting investigation, you may come up with new insights that translate into new hunts. Add these new hunting ideas to the backlog.</p>
+
+							<h2>Prioritisation Factors</h2>
+
+							<figure class="float-right">
+								<a href="../../../images/blog/hunt_prioritisation.webp" class="glightbox" data-gallery="blog">
+									<picture>
+										<source srcset="../../../images/blog/hunt_prioritisation.webp" type="image/webp">
+										<img src="../../../images/blog/hunt_prioritisation.png" alt="Hunt prioritisation factors diagram" class="blog-image" />
+									</picture>
+								</a>
+							</figure>
+
+							<p>The purpose of the prioritisation factors is to decrease or increase the priority of a hunt. An increasing factor should not give it a top priority or in the other case zero priority. It will influence the final priority. Also, it could be the case that a hunt has both matches in increasing and decreasing factors. These factors are meant to guide you and should not be used within any form of calculation. Some factors have more weight than others, depending on the hunt and the surrounding circumstances.</p>
+
+							<ul>
+								<li><strong>Level of detection</strong><br>The level of detection for the attacker behaviour that is part of the hunt is considered to be good (lowering the priority) or poor (increasing the priority). Therefore, the probability that the execution of the hunt will provide valuable results is lower or higher and affects the priority.</li>
+								<li><strong>Required time/resources and expected result</strong><br>This will cause lowering the priority when the required time/resources are high and the possible outcome leads to a minimal result. The priority is increased when the hunt is low on time/resources and possibly leads to a quick result.</li>
+								<li><strong>The risk associated with the hunt</strong><br>When the risk associated with the hunt is estimated to be low, it will decrease the priority. Otherwise, when it is considered to be a high risk, it will increase the priority.</li>
+								<li><strong>Trend in the usage of the attacker behaviour</strong><br>The attacker behaviour that is part of the hunt can have a notable upward (increasing the priority) or downward trend (lowering the priority) in the usage by threat actors and thereby affecting the priority of the hunt. Although this may sound obvious. A downtrend in the usage does not mean you will not encounter that particular attacker behaviour, just that you will see it less frequent.</li>
+								<li><strong>Source = crown jewel analysis and overall detection coverage is insufficient</strong><br>Knowledge on past breaches tells us that generic attacker behaviours (i.e. not specific to a crown jewel) play a crucial role in the attack path to a company's crown jewel. When your overall detection coverage is considered insufficient, it may be wiser to execute hunts that cover a larger area of the company's IT infrastructure. These hunts may include systems used by multiple crown jewels and assets you have not considered to have a high impact on the business when compromised. Also, spotting attacker behaviours earlier in the attack path will put you in a much better position in lowering the impact of an attack.<br><br>An attacker might not be interested in your crown jewels but takes a more straightforward approach by employing ransomware. When your crown jewels are the target, the attacker can take a lot of time to watch and learn. Subsequentially all the gained knowledge and access rights are used to blend in with the normal behaviour, bypassing any specific crown jewel detections.<br><br>I do not want to give the impression that hunting on crown jewels should have a low priority. However, it is good practice to take your overall detection coverage into account.</li>
+								<li><strong>Source = results from red and purple teaming</strong><br>As explained earlier, these attacker behaviours are excellent candidates for a hunt because they have proven to be successful.</li>
+								<li><strong>Source = historical security incidents</strong><br>Similar to red teaming, they have been proven to be successful against your company.</li>
+							</ul>
+
+							<p>Happy hunting!</p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2019/12/kql-cheat-sheet.html" class="next">KQL Cheat Sheet <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+		<script src="../../../assets/js/prism.min.js" defer></script>
+		<script src="../../../assets/js/prism-line-numbers.min.js" defer></script>
+		<script src="../../../assets/js/glightbox.min.js" defer></script>
+		<script src="../../../assets/js/blog-init.js" defer></script>
+	</body>
+</html>

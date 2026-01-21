@@ -1,0 +1,273 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>DeTT&amp;CT: Mapping your Blue Team to MITRE ATT&amp;CK&trade; - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Learn how DeTT&amp;CT helps blue teams map data sources, visibility, and detection coverage to MITRE ATT&amp;CK." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="DeTT&amp;CT: Mapping your Blue Team to MITRE ATT&amp;CK&trade; - MB Secure" />
+		<meta property="og:description" content="Learn how DeTT&amp;CT helps blue teams map data sources, visibility, and detection coverage to MITRE ATT&amp;CK." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2019/5/dettact-mapping-your-blue-team-to-mitre-attack.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2019/5/dettact-mapping-your-blue-team-to-mitre-attack.html" />
+		<meta property="og:image" content="https://mbsecure.nl/images/blog/example_group_red_team_overlay_detection.jpg" />
+		<meta property="article:published_time" content="2019-05-08" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "DeTT&CT: Mapping your Blue Team to MITRE ATT&CK&trade;",
+			"datePublished": "2019-05-08",
+			"dateModified": "2019-05-08",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"image": "https://mbsecure.nl/images/blog/example_group_red_team_overlay_detection.jpg",
+			"description": "Learn how DeTT&CT helps blue teams map data sources, visibility, and detection coverage to MITRE ATT&CK."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-tomorrow.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-line-numbers.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-fix.css" />
+		<link rel="stylesheet" href="../../../assets/css/glightbox.min.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">8 May 2019</span>
+							</div>
+							<h1>DeTT&amp;CT: Mapping your Blue Team to MITRE ATT&amp;CK&trade;</h1>
+						</header>
+
+						<div class="blog-post-content">
+				
+							<figure class="float-right">
+								<picture>
+									<source srcset="../../../images/blog/dettect_logo.webp" type="image/webp">
+									<img src="../../../images/blog/dettect_logo.png" alt="DeTT&CT Logo" class="blog-image" />
+								</picture>
+							</figure>
+
+							<p class="lead">A month ago <a href="https://twitter.com/RubenB_2" target="_blank" rel="noopener noreferrer">Ruben</a> and <a href="https://twitter.com/bakk3rm" target="_blank" rel="noopener noreferrer">I</a> released the first version of <a href="https://github.com/rabobank-cdc/DeTTECT" target="_blank" rel="noopener noreferrer">DeTT&amp;CT</a>. It was created at the Cyber Defence Centre of <a href="https://www.rabobank.com/en/home/index.html" target="_blank" rel="noopener noreferrer">Rabobank</a>, and built atop of <a href="https://attack.mitre.org/" target="_blank" rel="noopener noreferrer">MITRE ATT&amp;CK</a>. DeTT&amp;CT stands for: <strong>DE</strong>tect <strong>T</strong>actics, <strong>T</strong>echniques <strong>&amp;</strong> <strong>C</strong>ombat <strong>T</strong>hreats. Today we released version 1.1, which contains multiple improvements: <a href="https://github.com/rabobank-cdc/DeTTECT/wiki/Changelog" target="_blank" rel="noopener noreferrer">changelog</a>. Most changes are related to additional functionality to allow more detailed administration of your visibility and detection.</p>
+
+							<p>By creating DeTT&amp;CT we aim to assist blue teams using ATT&amp;CK to score and compare data log source quality, visibility coverage, detection coverage and threat actor behaviours. All of which can help, in different ways, to get more resilient against attacks targeting your organisation.</p>
+
+							<p>In this blog we start off with an introduction on ATT&amp;CK and continue with how DeTT&amp;CT can be used within your organisation. Detailed information about DeTT&amp;CT and how it can be used, is documented on the <a href="https://github.com/rabobank-cdc/DeTTECT/wiki" target="_blank" rel="noopener noreferrer">GitHub Wiki pages</a>. Therefore, the explanation we give in this blog will be high-level.</p>
+
+							<h2>ATT&amp;CK</h2>
+
+							<h3>Wikipedia on Cyber Attacks</h3>
+
+							<p>ATT&amp;CK can be translated loosely to the Wikipedia on cyber attackers with a focus on TTPs (Tactics, Techniques and Procedures) and thereby the top of the <a href="http://detect-respond.blogspot.com/2013/03/the-pyramid-of-pain.html" target="_blank" rel="noopener noreferrer">Pyramid of Pain</a>.</p>
+
+							<figure>
+										<a href="../../../images/blog/pyramid_of_pain_attack.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/pyramid_of_pain_attack.webp" type="image/webp">
+												<img src="../../../images/blog/pyramid_of_pain_attack.png" alt="Pyramid of Pain and ATT&CK" class="blog-image" />
+											</picture>
+										</a>
+							</figure>
+
+							<p>TTPs can in turn be translated to attacker behaviours. Meaning: what does an attacker do to achieve its goal (e.g. steal money or intellectual property). In more detail TTPs can be explained the following way (an even more in-depth explanation on TTPs can be found <a href="https://posts.specterops.io/whats-in-a-name-ttps-in-info-sec-14f24480ddcc" target="_blank" rel="noopener noreferrer">here</a>).</p>
+
+							<ul>
+								<li><strong>Tactics:</strong> the adversary's technical goals.</li>
+								<li><strong>Techniques:</strong> how the goals are achieved.</li>
+								<li><strong>Procedures:</strong> specific technique implementation.</li>
+							</ul>
+
+							<h3>ATT&amp;CK Matrix</h3>
+
+							<p>The ATT&amp;CK Matrix visually describes the current 12 tactics and 244 enterprise techniques. On top of the matrix we can visualise TTPs in the following way:</p>
+
+							<figure>
+										<a href="../../../images/blog/ttp_matrix.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/ttp_matrix.webp" type="image/webp">
+												<img src="../../../images/blog/ttp_matrix.png" alt="TTP Matrix visualization" class="blog-image" />
+											</picture>
+										</a>
+								<figcaption>Source: <a href="https://www.youtube.com/watch?v=ho_rAgKXCss" target="_blank" rel="noopener noreferrer">SANS CTI Summit 2019 - ATT&amp;CK Your CTI w/ Lessons Learned from 4 Years in the Trenches</a></figcaption>
+							</figure>
+
+							<p>The order of tactics within ATT&amp;CK are logically arranged within multiple <a href="https://attack.mitre.org/matrices/enterprise/" target="_blank" rel="noopener noreferrer">matrices</a> (for Windows, Linux, MacOS and mobile) and start with the tactic "Initial Access". For example: sending a spear phishing email containing a malicious attachment is a technique within this tactic. Every technique within ATT&amp;CK has a unique ID, such as <a href="https://attack.mitre.org/techniques/T1193" target="_blank" rel="noopener noreferrer">T1193</a> for this particular one. The next tactic in the matrix is "Execution". Within this tactic there is, for example, the technique "<a href="https://attack.mitre.org/techniques/T1204" target="_blank" rel="noopener noreferrer">User Execution/T1204</a>". This technique describes the execution of malicious code achieved during a specific action performed by a user. This could play a role with T1193 when opening the malicious attachment that is sent through spear phishing. Later on in the matrix you will encounter tactics like "Privilege Escalation", "Lateral Movement" and "Exfiltration".</p>
+
+							<p>MITRE provides an interactive editor to browse the ATT&amp;CK Matrix called the <a href="https://mitre-attack.github.io/attack-navigator/enterprise/" target="_blank" rel="noopener noreferrer">ATT&amp;CK Navigator</a>. In this tool you can visualize techniques in multiple ways. DeTT&amp;CT uses this for creating its visualisations.</p>
+
+							<h3>Relationship of Entities Within ATT&amp;CK</h3>
+
+							<figure class="float-right">
+										<a href="../../../images/blog/attack_relations.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/attack_relations.webp" type="image/webp">
+												<img src="../../../images/blog/attack_relations.png" alt="ATT&CK entity relationships diagram" class="blog-image" />
+											</picture>
+										</a>
+							</figure>
+
+							<p>Besides information on TTPs ATT&amp;CK also has valuable information on groups (threat actors), software (used by groups) and data log sources (visibility required for detection). The relationship between these types of information can be visualised as shown in the diagram.</p>
+
+							<h2>DeTT&amp;CT</h2>
+
+							<p>You can map the information you have within your organisation on the entities available in ATT&amp;CK. DeTT&amp;CT delivers a framework which does exactly that and it will help you to administrate your blue team's data sources, visibility and detection. It will also provide you with means to administrate threat intelligence that you get from your own intelligence team or third-party provider. This can then also be compared to your current detection or visibility coverage.</p>
+
+							<p>We will now take a closer look at DeTT&amp;CT. Detailed information on DeTT&amp;CT and how it can be used are documented on the <a href="https://github.com/rabobank-cdc/DeTTECT/wiki" target="_blank" rel="noopener noreferrer">GitHub Wiki pages</a>.</p>
+
+							<h3>Data Sources</h3>
+
+							<p>For blue teams it is crucial to know what data log sources you have, what the quality is and if it can be used to perform data analytics. Having that, you are able to know if you can find certain attacker behaviours (which make themselves visible in one or more log sources) or if you can build new detections.</p>
+
+							<p>One of the first steps in using DeTT&amp;CT is making an inventory of your data sources. ATT&amp;CK has defined around 50 different types of data sources, which we included in this framework. For every data source you can administrate several aspects, such as data quality for which we provide a <a href="https://github.com/rabobank-cdc/DeTTECT/raw/master/scoring_table.xlsx" target="_blank" rel="noopener noreferrer">scoring table</a>.</p>
+
+							<p>This administration of data sources is stored in a dedicated <a href="https://github.com/rabobank-cdc/DeTTECT/wiki/YAML-administration-data-sources" target="_blank" rel="noopener noreferrer">data source YAML file</a>. (YAML is a human readable data serialisation language. Its footprint is smaller than XML and more readable compared to JSON).</p>
+
+							<h3>Visibility</h3>
+
+							<p>Once you know where you lack visibility, you can start making improvements, and enhance your detection and incident response.</p>
+
+							<p>For every technique ATT&amp;CK has listed which data source you will need to have for detection. While using ATT&amp;CK quite extensively we noted that this listing of data sources is not always complete. However, it will provide you with a very good starting point.</p>
+
+							<p>Once you have administrated the information on your data sources, you can start doing something interesting with the data sources defined and scored in the data source administration file. Data sources can be mapped to ATT&amp;CK techniques to visualise your potential visibility coverage, using <a href="https://github.com/mitre-attack/attack-navigator" target="_blank" rel="noopener noreferrer">MITRE's ATT&amp;CK Navigator</a> as shown below. Please note that this gives you a rough overview on your visibility coverage. For multiple reasons manual scoring of your visibility is still required (more on that on the <a href="https://github.com/rabobank-cdc/DeTTECT/wiki/Getting-started#how-to-use-the-framework" target="_blank" rel="noopener noreferrer">Wiki</a>). Visibility scores are administrated within a <a href="https://github.com/rabobank-cdc/DeTTECT/wiki/YAML-administration-techniques" target="_blank" rel="noopener noreferrer">technique administration YAML file</a> for which DeTT&amp;CT also provides a visibility <a href="https://github.com/rabobank-cdc/DeTTECT/raw/master/scoring_table.xlsx" target="_blank" rel="noopener noreferrer">scoring table</a>.</p>
+
+							<p>Use DeTT&amp;CT in the way it works best for you. Scoring every single technique for visibility within the ATT&amp;CK Matrix is a lot of work. You therefore may only score what you know at that time and what you want to communicate to others or want to verify/compare.</p>
+
+							<figure>
+										<a href="../../../images/blog/example_data_sources.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/example_data_sources.webp" type="image/webp">
+												<img src="../../../images/blog/example_data_sources.png" alt="Example heat map showing visibility coverage based on data sources" class="blog-image" />
+											</picture>
+										</a>
+								<figcaption>Example heat map showing a rough overview on your visibility coverage based on number of data sources.</figcaption>
+							</figure>
+
+							<h3>Detection</h3>
+
+							<p>Detection can also be <a href="https://github.com/rabobank-cdc/DeTTECT/wiki/Detection-scoring" target="_blank" rel="noopener noreferrer">scored</a> and hence visualised on top of the ATT&amp;CK Matrix, in a similar way as can be done for visibility. Administrating and scoring detection is a manual exercise. This administration is kept within the same YAML file as used for visibility.</p>
+
+							<figure>
+										<a href="../../../images/blog/example_detection.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/example_detection.webp" type="image/webp">
+												<img src="../../../images/blog/example_detection.png" alt="Example heat map showing detection scores" class="blog-image" />
+											</picture>
+										</a>
+								<figcaption>Example heat map showing detection scores.</figcaption>
+							</figure>
+
+							<h3>Groups</h3>
+
+							<p>Knowing what ATT&amp;CK techniques are used among threat actors is of big value for blue teams. It allows you to prioritise your blue team's cyber defence efforts. The group functionality of DeTT&amp;CT allows you to:</p>
+
+							<ul>
+								<li>Get an overall heat map based on all threat actor group data present in ATT&amp;CK. Please note that like all data there is bias. As very well explained by MITRE: <a href="https://medium.com/mitre-attack/building-an-attack-sightings-ecosystem-b43d52cac151" target="_blank" rel="noopener noreferrer">Building an ATT&amp;CK Sightings Ecosystem</a>.</li>
+								<li>Create heat maps based on a subset of groups present in the ATT&amp;CK data of MITRE.</li>
+								<li>Create heat maps based on intelligence you get from your own intelligence team or based on techniques that have been performed in red team exercises. This information is stored in a <a href="https://github.com/rabobank-cdc/DeTTECT/wiki/YAML-administration-groups" target="_blank" rel="noopener noreferrer">groups administration YAML file</a>.</li>
+								<li>Compare techniques used by threat actors with your level of detection or visibility to uncover possible gaps and improvements.</li>
+								<li>Compare threat actor groups.</li>
+								<li>Visualise the potential capabilities of a threat actor based on the software they use.</li>
+							</ul>
+
+							<p>The example below shows a heat map based on all threat actor data within ATT&amp;CK. The darker the colour in the heat map, the more often the technique is being used among groups:</p>
+
+							<figure>
+										<a href="../../../images/blog/dettect_groups_heatmap.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/dettect_groups_heatmap.webp" type="image/webp">
+												<img src="../../../images/blog/dettect_groups_heatmap.png" alt="Heat map based on threat actor data" class="blog-image" />
+											</picture>
+										</a>
+							</figure>
+
+							<h3>Identify Gaps and Prioritise</h3>
+
+							<p>When you have a good understanding of your visibility, detection coverage and which ATT&amp;CK techniques are relevant for your organisation (based on threat intelligence), you can start to identify gaps and improvements to prioritise your blue team's defence efforts.</p>
+
+							<p>For example, your internal threat intelligence team provides you with intelligence that tells you that a certain set of ATT&amp;CK techniques are relevant for your organisation. You store those techniques within a groups administration YAML file. DeTT&amp;CT allows you to visually compare this with your current state of detection to identify possible gaps or improvements on ATT&amp;CK techniques. You can also compare this with your level of visibility. This may tell you that your current level of visibility is insufficient to detect a particular technique. Upon which you can then act to improve.</p>
+
+							<figure>
+										<a href="../../../images/blog/example_group_overlay_detection.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/example_group_overlay_detection.webp" type="image/webp">
+												<img src="../../../images/blog/example_group_overlay_detection.png" alt="Example visualisation comparing threat actor group to detections" class="blog-image" />
+											</picture>
+										</a>
+								<figcaption>Example visualisation in which a threat actor group/red team exercise is compared to your detections.</figcaption>
+							</figure>
+
+							<p>We have discussed the most important parts of DeTT&amp;CT and we encourage you to take a deep dive into our <a href="https://github.com/rabobank-cdc/DeTTECT" target="_blank" rel="noopener noreferrer">Github</a> and Wiki pages. Creating DeTT&amp;CT helped Rabobank to administrate and visualise the current state of the blue team's cyber defences. We hope that releasing DeTT&amp;CT will also help others in cyber defence. We welcome contributions! Contributions can be in code, as well as in ideas you might have for further development, usability improvements, etc. Please feel free to contact us via Twitter. DMs are open.</p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2019/10/how-to-integrate-eql-into-your-tooling.html" class="prev"><span class="arrow">←</span> How to integrate EQL into your tooling</a>
+							<a href="../../../blog/2018/12/tahiti-threat-hunting-methodology.html" class="next">TaHiTI - Threat Hunting Methodology <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+		<script src="../../../assets/js/glightbox.min.js" defer></script>
+		<script src="../../../assets/js/blog-init.js" defer></script>
+	</body>
+</html>

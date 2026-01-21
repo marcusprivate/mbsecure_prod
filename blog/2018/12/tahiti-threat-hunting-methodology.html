@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>TaHiTI - Threat Hunting Methodology - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="TaHiTI (Targeted Hunting integrating Threat Intelligence) is a threat hunting methodology developed in collaboration with Dutch financial institutions." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="TaHiTI - Threat Hunting Methodology - MB Secure" />
+		<meta property="og:description" content="TaHiTI (Targeted Hunting integrating Threat Intelligence) is a threat hunting methodology developed in collaboration with Dutch financial institutions." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2018/12/tahiti-threat-hunting-methodology.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2018/12/tahiti-threat-hunting-methodology.html" />
+		<meta property="og:image" content="https://mbsecure.nl/images/blog/pyramid_pain.jpg" />
+		<meta property="article:published_time" content="2018-12-21" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "TaHiTI - Threat Hunting Methodology",
+			"datePublished": "2018-12-21",
+			"dateModified": "2018-12-21",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"image": "https://mbsecure.nl/images/blog/pyramid_pain.jpg",
+			"description": "TaHiTI (Targeted Hunting integrating Threat Intelligence) is a threat hunting methodology developed in collaboration with Dutch financial institutions."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+		<link rel="stylesheet" href="../../../assets/css/glightbox.min.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">21 December 2018</span>
+							</div>
+							<h1>TaHiTI - Threat Hunting Methodology</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">During several months we worked together with a number of Dutch financial institutions to create the threat hunting methodology called <strong>TaHiTI</strong>. Which stands for <strong>T</strong>argeted <strong>H</strong>unting integrating <strong>T</strong>hreat <strong>I</strong>ntelligence</strong>. You can obtain it from here: <a href="https://www.betaalvereniging.nl/en/safety/tahiti" target="_blank" rel="noopener noreferrer">https://www.betaalvereniging.nl/en/safety/tahiti</a>.</p>
+
+							<p>The goal of this collaboration was to reach a joint understanding of what threat hunting is and to come up with a common approach how to carry out threat hunting. As the name implies, threat intelligence has an important role within this methodology. It is used as a source for creating hunting hypotheses and during the hunting investigation to further contextualize and enrich the hunt.</p>
+
+							<p>Within the document the following topics are discussed:</p>
+
+							<ul>
+								<li>Threat hunting is introduced: definition, purpose, characteristics, types of threat hunting, pyramid of pain in relation to hunting and hunting maturity.</li>
+								<li>Threat intelligence in relation to threat hunting: definition, purpose, characteristics and the relation between hunting and threat intelligence.</li>
+								<li>The TaHiTI methodology is explained in detail.</li>
+								<li>Threat hunting metrics are discussed.</li>
+								<li>Best practices for doing threat hunting and the implementation of a threat hunting program.</li>
+							</ul>
+
+							<p>In this blog post I want to point out two topics from the methodology and explain parts in detail and provide some examples.</p>
+
+							<p>It was very nice and interesting to be part of this initiative as a co-author, and I want to thank the initiator and lead-author Rob van Os for starting and leading this!</p>
+
+							<h2>The Purpose and Values of Threat Hunting</h2>
+
+							<p>Within TaHiTI the purpose of threat hunting is stated as follows:</p>
+
+							<blockquote>
+								<p>The main purpose of threat hunting is to reduce the time required to find traces of attackers that have already compromised the IT environment. By finding these traces as soon as possible, the impact of breaches to the organisation can be minimised. The breach detection gap is an important concept in the context of this purpose.</p>
+							</blockquote>
+
+							<p>Within the methodology the breach detection gap is explained in more detail. It is also commonly referred to as dwell time. Besides reducing dwell time, threat hunting has other benefits:</p>
+
+							<ul>
+								<li><strong>Identification of gaps in visibility and detection</strong> necessary to detect and respond to a specific <a href="https://posts.specterops.io/whats-in-a-name-ttps-in-info-sec-14f24480ddcc" target="_blank" rel="noopener noreferrer">TTP</a> (Tactics, Techniques, and Procedures).
+									<p>For example: during your hunting investigation you may discover that you are lacking visibility, for whatever reason, within a certain part of your IT environment. Or you discover that you are missing Windows event ID <a href="https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769" target="_blank" rel="noopener noreferrer">4769</a> ("A Kerberos service ticket was requested") necessary to perform a hunt on <a href="https://attack.mitre.org/techniques/T1208/" target="_blank" rel="noopener noreferrer">Kerberoasting</a>.</p>
+								</li>
+								<li><strong>Development of new detection analytics</strong> used in the creation of new or improved security monitoring use cases.
+									<p>For example: the analytics created to detect a specific technique used for lateral movement within your company, taking into account normal behaviour relevant to your IT environment.</p>
+								</li>
+								<li><strong>Uncovering new threats and TTPs</strong> that feedback to threat intelligence.
+									<p>During an investigation you may uncover a previously unknown TTP for an attacker. For example, a new procedure in relation to ATT&amp;CK technique <a href="https://attack.mitre.org/techniques/T1027/" target="_blank" rel="noopener noreferrer">T1027</a> to obfuscate malicious commands that was previously unknown.</p>
+								</li>
+								<li><strong>Recommendations for new preventive measures.</strong>
+									<p>The result of the hunting investigation could also result in a recommendation to take certain preventive measures that will lower the chance on the successful execution of a TTP.</p>
+								</li>
+							</ul>
+
+							<h2>Hunt at the Top of the Pyramid</h2>
+
+							<p>The <a href="http://detect-respond.blogspot.com/2013/03/the-pyramid-of-pain.html" target="_blank" rel="noopener noreferrer">Pyramid of Pain</a> is a concept that is closely related to threat hunting. In TaHiTI a short description is provided on the Pyramid of Pain:</p>
+
+							<figure class="float-left">
+								<picture>
+									<source srcset="../../../images/blog/pyramid_pain.webp" type="image/webp">
+									<img src="../../../images/blog/pyramid_pain.jpg" alt="The Pyramid of Pain" class="blog-image" />
+								</picture>
+							</figure>
+
+							<blockquote>
+								<p>The pyramid of pain is an important and elegant concept that can be used in threat hunting and threat intelligence. The pyramid addresses how difficult it is for attackers to change certain characteristics of their attack. At the same time, it also shows how difficult it is for organisations to find these characteristics. Finding a file with a certain hash value is easy, but uncovering illegitimate use of PowerShell in an organisation where PowerShell is commonly used poses an entirely different challenge. Similarly, it is trivial for attackers to generate a new file with a different hash, but much harder to move or modify an attacker technique to evade detection.</p>
+							</blockquote>
+
+							<p>TaHiTI focuses only on the top 3 layers of the pyramid and also states that hunting on the lower layers is not considered to be threat hunting. But why are the lower three layers far less interesting for threat hunting? Hunting on the lower 3 layers will not yield high value in hunting investigation. The simple reason is that lower layers are based on information from past targeted attacks and wide scale global threat actor campaigns. This information includes known bad domain names, IP addresses and hashes.</p>
+
+							<p>The source of this information comes from attacks that have already been carried out. Therefore, the chances are very small that this information will uncover targeted attacks against your company. This does not mean that checks on these lower layers should not be done. They should be automated where possible and where it makes sense.</p>
+
+							<h2>Conclusion</h2>
+
+							<p>With this blog I covered a very small subset of the content of TaHiTI. The methodology is released under the creative commons license with the intention that others can build on it and improve it. So, feel free to reach out to provide feedback and share your own findings and experience.</p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2019/5/dettact-mapping-your-blue-team-to-mitre-attack.html" class="prev"><span class="arrow">←</span> DeTT&amp;CT: Mapping your Blue Team to MITRE ATT&amp;CK™</a>
+							<a href="../../../blog/2018/9/opsec-for-blue-teams-part-3.html" class="next">OPSEC for Blue Teams - Part 3 <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+		<script src="../../../assets/js/glightbox.min.js" defer></script>
+		<script src="../../../assets/js/blog-init.js" defer></script>
+	</body>
+</html>

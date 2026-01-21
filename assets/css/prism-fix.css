@@ -1,0 +1,37 @@
+/* Prism Line Numbers Alignment Fix
+   This file must load AFTER prism-line-numbers.min.css */
+
+/* Base styling on the pre element - use relative line-height */
+pre[class*="language-"] {
+	font-size: 14px !important;
+	line-height: 1.4 !important;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
+	white-space: pre-wrap !important;
+	word-wrap: break-word !important;
+	word-break: break-word !important;
+	overflow-wrap: break-word !important;
+}
+
+/* All children inherit from pre */
+pre[class*="language-"] code,
+pre[class*="language-"] code *,
+pre[class*="language-"] .token,
+pre[class*="language-"] span {
+	font-size: inherit !important;
+	line-height: inherit !important;
+	font-family: inherit !important;
+}
+
+/* Line numbers container must match the pre exactly */
+.line-numbers-rows {
+	font-size: 14px !important;
+	line-height: 1.4 !important;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
+}
+
+/* Line number spans inherit */
+.line-numbers-rows > span,
+.line-numbers-rows > span::before {
+	font-size: inherit !important;
+	line-height: inherit !important;
+}

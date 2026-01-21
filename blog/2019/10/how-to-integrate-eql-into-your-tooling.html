@@ -1,0 +1,463 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>How to integrate EQL into your tooling - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Learn how to integrate EQL (Event Query Language) into your Python tools for security event analysis." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="How to integrate EQL into your tooling - MB Secure" />
+		<meta property="og:description" content="Learn how to integrate EQL (Event Query Language) into your Python tools." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2019/10/how-to-integrate-eql-into-your-tooling.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2019/10/how-to-integrate-eql-into-your-tooling.html" />
+		<meta property="og:image" content="https://mbsecure.nl/images/blog/eql.png" />
+		<meta property="article:published_time" content="2019-10-02" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "How to integrate EQL into your tooling",
+			"datePublished": "2019-10-02",
+			"dateModified": "2019-10-02",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"image": "https://mbsecure.nl/images/blog/eql.png",
+			"description": "Learn how to integrate EQL (Event Query Language) into your Python tools."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-tomorrow.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-line-numbers.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-fix.css" />
+		<link rel="stylesheet" href="../../../assets/css/glightbox.min.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">2 October 2019</span>
+							</div>
+							<h1>How to integrate EQL into your tooling</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">At DerbyCon I had a conversation with Ross Wolf (<a href="https://twitter.com/rw_access" target="_blank" rel="noopener noreferrer">@rw_access</a>) from EndGame about the capabilities of <a href="https://eql.readthedocs.io/en/latest/" target="_blank" rel="noopener noreferrer">EQL</a> (Event Query Language) and how to integrate it in other tools. The purpose of this blog is to share my gained knowledge in that area and Python code to help others to integrate EQL within their tools.</p>
+
+							<h2>What is EQL?</h2>
+
+							<p>See the citation below for a quick introduction to EQL. For more details and examples see the blogs on Endgame's website [<a href="https://www.endgame.com/blog/technical-blog/introducing-event-query-language" target="_blank" rel="noopener noreferrer">1</a>, <a href="https://www.endgame.com/blog/technical-blog/eql-for-the-masses" target="_blank" rel="noopener noreferrer">2</a>, <a href="https://www.endgame.com/blog/technical-blog/getting-started-eql" target="_blank" rel="noopener noreferrer">3</a>].</p>
+
+							<figure class="float-right">
+								<picture>
+									<source srcset="../../../images/blog/eql.webp" type="image/webp">
+									<img src="../../../images/blog/eql.png" alt="EQL Logo" class="blog-image" />
+								</picture>
+							</figure>
+
+							<blockquote>
+								<p>EQL is a language that can match events, generate sequences, stack data, build aggregations, and perform analysis. EQL is schemaless and supports multiple database backends. It supports field lookups, boolean logic, comparisons, wildcard matching, and function calls. EQL also has a preprocessor that can perform parse and translation time evaluation, allowing for easily sharable components between queries.</p>
+								<p>Source: <a href="https://eql.readthedocs.io/en/latest/" target="_blank" rel="noopener noreferrer">Endgame</a></p>
+							</blockquote>
+
+							<p>Starting end of 2018, EndGame made EQL open source, and therefore you can start using it within your own tools or extending the capabilities of EQL. I think it is truly great to see this being shared with the community! I also like the fact it is written in Python: a very popular language for security tools.</p>
+
+							<p>When we wanted to have the capability within <a href="https://github.com/rabobank-cdc/DeTTECT" target="_blank" rel="noopener noreferrer">DeTT&amp;CT</a> (written in Python) to include or exclude certain objects (e.g. to filter or highlight detections for ATT&amp;CK techniques with a low score), I was happy that I did not have to write the code myself to achieve this, but instead rely mainly on EQL doing that for me in a much better way.</p>
+
+							<h2>Integrate into your code</h2>
+
+							<p>Now, let's explain how to integrate EQL in your Python tool to query your data. Before you continue, make sure to have the EQL Python libraries available on your system. This can easily be done via pip: <code>pip install eql</code></p>
+
+							<h3>EQL: Not only for JSON and security events</h3>
+
+							<p>EQL is used mainly for security events stored in the JSON format, but EQL can also be used for other purposes and data formats. As long as you provide the data as a list of Python dictionaries and have the key-value pairs be compatible with the JSON data format.</p>
+
+							<p>Within DeTT&amp;CT we make use of several YAML files to store data. Luckily in Python, YAML is also presented as a list of dictionaries. To have these YAML files compatible with the JSON specs, I had to make sure to serialise any date key-value pairs of the type <code>datetime.date</code> (after loading the YAML file into a list of dictionaries) to a Python string:</p>
+
+<pre class="line-numbers"><code class="language-python">if isinstance(value, datetime.date):
+    return str(value)
+else:
+    return value</code></pre>
+
+							<h3>Create EQL Events</h3>
+
+							<p>The first step (or second when you first had to make the data compatible with the JSON specs) is to create EQL Event objects, which are used in EQL to perform data analytics on. Although this is not a mandatory step, it does provide you with more control over how the Events are created.</p>
+
+							<ul>
+								<li>Set the value for the <code>event_type</code> to be used within your search queries:
+									<ul>
+										<li>Having a good value will make it very clear on what kind of data you are performing your search query:
+											<ul>
+												<li>For example: "web_proxy where …" instead of "generic where …"</li>
+											</ul>
+										</li>
+										<li>When not creating the EQL Events yourself, EQL will try to derive the <code>event_type</code> based on any field within your data named <code>event_type</code> or <code>event_type_full</code>.</li>
+										<li>If it does not result in a value for the <code>event_type</code>, the default value <code>generic</code> will be used.</li>
+									</ul>
+								</li>
+								<li>Similar to the above, you can specify which data field will be used as the timestamp for your events. Otherwise, it tries to derive the timestamp based on a data field named <code>timestamp</code>.</li>
+							</ul>
+
+							<p>Start with creating a list of EQL events from a list of Python dictionaries containing the data you want to query. The below function <code>_create_events</code> does precisely that. When you are for example dealing with YAML as an input, the function <code>_serialize_date</code> will serialise every <code>datetime.date</code> key-value pair to a String before creating the EQL Events:</p>
+
+<pre class="line-numbers"><code class="language-python">def _create_events(self, data, data_type, event_type, timestamp_key):
+    """
+    Create EQL Events from the provided data.
+    :param data: list of dictionaries to be transformed to EQL Events
+    :param data_type: if 'yaml', serialize all 'datetime.date' key-value pairs
+    :param event_type: the value to be used as event_type for the provided data
+    :param timestamp_key: name of the key-value pair to be used as timestamp
+    :return: EQL Events or data
+    """
+    eql_events = []
+
+    if data_type == 'yaml':
+        data = self._serialize_date(data)
+
+    # this result in EQL trying the derive the event_type and
+    # timestamp from the contents of 'data'
+    if not event_type:
+        return data
+
+    # create EQL Events from 'data'
+    for item in data:
+        eql_events.append(eql.Event(event_type, timestamp_key, item))
+
+    return eql_events</code></pre>
+
+							<h3>Learn the Schema</h3>
+
+							<p>The next step is to learn the schema of the data. In the code below the variable <code>events</code> is the list of EQL Event objects created previously by the function <code>_create_events</code>:</p>
+
+<pre class="line-numbers"><code class="language-python">schema = eql.Schema.learn(events)</code></pre>
+
+                            <figure class="float-right">
+                                <picture>
+                                    <source srcset="../../../images/blog/eql_syntax_error.webp" type="image/webp">
+                                    <img src="../../../images/blog/eql_syntax_error.png" alt="Example EQL syntax error message" class="blog-image" />
+                                </picture>
+                                <figcaption>Example EQL syntax error message</figcaption>
+                            </figure>
+
+							<p>Learning the schema is not a necessary step to execute EQL search queries. But it does give you the capability to print a detailed error message when making syntax mistakes in your query.</p>
+
+							<p>See the picture for an example of an error message, which nicely highlights that 'pi' is an unrecognised field. As shown in the schema, 'pid' should be used instead.</p>
+
+							<p>The EQL library does not print this error message and the schema for you. Fortunately, this only requires a few lines of code:</p>
+
+<pre class="line-numbers"><code class="language-python">with schema:
+    try:
+        eql_query = eql.parse_query(query, implied_any=True,
+                                    implied_base=True)
+        engine.add_query(eql_query)
+    except eql.EqlError as e:
+        print(e, file=sys.stderr)
+        print('\nTake into account the following schema:')
+        pprint(schema.schema)
+        return None</code></pre>
+
+							<h3>Create the EQL Engine and Execute the Query</h3>
+
+							<p>After you have created a list of EQL Events from your data and optionally learned the schema, you can continue with creating the EQL Python engine to execute the query. The function below will return a list of dictionaries containing the Event data that match your query, which you can use within your own tooling to do whatever you want.</p>
+
+<pre class="line-numbers"><code class="language-python">def _execute_eql_query(self, events, query):
+    """
+    Execute an EQL query on the provided events.
+    :param events: events
+    :param query: EQL query
+    :return: the result of the query as a list of dictionaries or
+    None when the query did not match the schema
+    """
+    schema = eql.Schema.learn(events)
+
+    query_result = []
+
+    # this function is used to store the result of the query to 'query_result'
+    def store_result(result):
+        for event in result.events:
+            query_result.append(event.data)
+
+    engine = eql.PythonEngine()
+    with schema:
+        try:
+            eql_query = eql.parse_query(query, implied_any=True,
+                                        implied_base=True)
+            engine.add_query(eql_query)
+        except eql.EqlError as e:
+            print(e, file=sys.stderr)
+            print('\nTake into account the following schema:')
+            pprint(schema.schema)
+            return None
+        engine.add_output_hook(store_result)
+
+    # execute the query
+    engine.stream_events(events)
+
+    return query_result</code></pre>
+
+							<ul>
+								<li><strong>11:</strong> create a Python list to store the results of the query.</li>
+								<li><strong>14-16:</strong> in my code, I choose to make use of an inner function <code>store_result</code> to be used as a callback for the EQL engine. This function will be called after the query has finished and stores the result in the list <code>query_result</code>.</li>
+								<li><strong>18:</strong> create the EQL Python engine.</li>
+								<li><strong>21-22:</strong> parse the query using the function: <code>parse_query</code>.
+									<ul>
+										<li>Because the parameter <code>implied_any</code> is set to <code>True</code>, it will give the possibility to shorten queries by removing the <code>event_type</code> and the 'where' clause. For example: "process where pid == 424" and "pid == 424" are both valid and return the same result.</li>
+									</ul>
+								</li>
+								<li><strong>23:</strong> add the query to the engine.</li>
+								<li><strong>24-28:</strong> the query syntax error handling as discussed earlier.</li>
+								<li><strong>29:</strong> add the callback function <code>store_result</code> to the engine using <code>add_output_hook</code>.</li>
+								<li><strong>32:</strong> execute the query by calling the function <code>stream_events</code> from the engine. When finished, it will call the <code>store_result</code> callback function to save the result in the list <code>query_result</code>.</li>
+							</ul>
+
+							<p>That is all to start using EQL within your tools.</p>
+
+							<h3>The Complete Code Example</h3>
+
+							<p>All Python code for integrating EQL in your tool(s) can be downloaded from my GitHub account: <a href="https://github.com/marcusbakker/EQL" target="_blank" rel="noopener noreferrer">github.com/marcusbakker/EQL</a>. This code also includes functionality that was not shared above. Such as code that performs two example search queries on the files: <a href="https://github.com/marcusbakker/EQL/blob/master/example.json" target="_blank" rel="noopener noreferrer"><code>example.json</code></a> and <a href="https://github.com/marcusbakker/EQL/blob/master/data-sources-endpoints.yaml" target="_blank" rel="noopener noreferrer"><code>data-sources-endpoints.yaml</code></a>.</p>
+
+							<p>The code requires Python version 3 and was tested with v0.7 of EQL and v5.1.2 PyYAML. When run successfully it should produce the following output:</p>
+
+							<figure>
+								<picture>
+									<source srcset="../../../images/blog/output_eql_demo_tool.webp" type="image/webp">
+									<img src="../../../images/blog/output_eql_demo_tool.png" alt="Output of EQL demo tool" class="blog-image" />
+								</picture>
+								<figcaption>Output from the EQL demo tool</figcaption>
+							</figure>
+
+							<p><strong>eql_demo_tool.py</strong></p>
+
+<pre class="line-numbers"><code class="language-python">import datetime
+import json
+import sys
+from pprint import pprint
+import eql
+import yaml
+
+
+class EQLSearch:
+    def _create_events(self, data, data_type, event_type, timestamp_key):
+        """
+        Create EQL Events from the provided data.
+        :param data: list of dictionaries to be transformed to EQL Events
+        :param data_type: if 'yaml', serialize all 'datetime.date' key-value pairs
+        :param event_type: the value to be used as event_type for the provided data
+        :param timestamp_key: name of the key-value pair to be used as timestamp
+        :return: EQL Events or data
+        """
+        eql_events = []
+
+        if data_type == 'yaml':
+            data = self._serialize_date(data)
+
+        # this result in EQL trying the derive the event_type and
+        # timestamp from the contents of 'data'
+        if not event_type:
+            return data
+
+        # create EQL Events from 'data'
+        for item in data:
+            eql_events.append(eql.Event(event_type, timestamp_key, item))
+
+        return eql_events
+
+    def _execute_eql_query(self, events, query):
+        """
+        Execute an EQL query on the provided events.
+        :param events: events
+        :param query: EQL query
+        :return: the result of the query as a list of dictionaries or
+        None when the query did not match the schema
+        """
+        schema = eql.Schema.learn(events)
+
+        query_result = []
+
+        # this function is used to store the result of the query to 'query_result'
+        def store_result(result):
+            for event in result.events:
+                query_result.append(event.data)
+
+        engine = eql.PythonEngine()
+        with schema:
+            try:
+                eql_query = eql.parse_query(query, implied_any=True,
+                                            implied_base=True)
+                engine.add_query(eql_query)
+            except eql.EqlError as e:
+                print(e, file=sys.stderr)
+                print('\nTake into account the following schema:')
+                pprint(schema.schema)
+                return None
+            engine.add_output_hook(store_result)
+
+        # execute the query
+        engine.stream_events(events)
+
+        return query_result
+
+    def search(self, data, query, data_type='json',
+               event_type=None, timestamp_key=0):
+        """
+        Perform a EQL search on the provided JSON or YAML data.
+        :param data: list of dictionaries
+        :param query: EQL search query
+        :param data_type: 'json' or 'yaml'
+        :param event_type: name of the event type to use for the EQL schema.
+        Leave empty if you want to derive the event type from the data itself
+        (i.e. the key-value pair named 'event_type' or 'event_type_full').
+        :param timestamp_key: name of the key-value pair to be used as timestamp
+        :return: the result of the search query as a list of dictionaries
+        """
+        # check for a valid data_type
+        if data_type != 'json' and data_type != 'yaml':
+            raise ValueError("date_type should be 'json' or 'yaml'")
+
+        # transform data into a list of EQL Event objects
+        eql_events = self._create_events(data, data_type, event_type, timestamp_key)
+
+        # execute the EQL query on the provided data
+        search_result = self._execute_eql_query(eql_events, query)
+
+        return search_result
+
+    def _traverse_dict(self, obj, callback=None):
+        """
+        Traverse all items in a dictionary
+        :param obj: dictionary, list or value
+        :param callback: the function that will be called to modify a value
+        :return: value or call callback function
+        """
+        if isinstance(obj, dict):
+            value = {k: self._traverse_dict(v, callback)
+                     for k, v in obj.items()}
+        elif isinstance(obj, list):
+            value = [self._traverse_dict(elem, callback)
+                     for elem in obj]
+        else:
+            value = obj
+
+        # if a callback is provided, call it to get the new value
+        if callback is None:
+            return value
+        else:
+            return callback(value)
+
+    def _serialize_date(self, obj):
+        """
+        Serialize a datetime.date object
+        :param obj: dictionary
+        :return: function call
+        """
+
+        # this gets called for every value in the dictionary
+        def _transformer(value):
+            if isinstance(value, datetime.date):
+                return str(value)
+            else:
+                return value
+
+        return self._traverse_dict(obj, callback=_transformer)
+
+
+if __name__ == "__main__":
+    eql_search = EQLSearch()
+
+    with open('example.json', 'r') as json_data:
+        data = json.load(json_data)
+
+    query = 'process where pid == 424'
+    result = eql_search.search(data, query)
+    if result:
+        print('Query:  ' + query + '\nResult: ' +
+              str(len(result)) + ' event(s) ↓\n')
+        pprint(result)
+
+    print('\n' + '-' * 80 + '\n')
+
+    with open('data-sources-endpoints.yaml', 'r') as yaml_data:
+        data = yaml.safe_load(yaml_data)['data_sources']
+
+    query = 'data_sources where date_connected >= "2019-01-01"'
+    result = eql_search.search(data, query, data_type='yaml',
+                               event_type='data_sources', timestamp_key=0)
+    if result:
+        print('Query:  ' + query + '\nResult: ' +
+              str(len(result)) + ' event(s) ↓\n')
+        pprint(result)</code></pre>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2019/12/kql-cheat-sheet.html" class="prev"><span class="arrow">←</span> KQL Cheat Sheet</a>
+							<a href="../../../blog/2019/5/dettact-mapping-your-blue-team-to-mitre-attack.html" class="next">DeTT&amp;CT: Mapping your Blue Team to MITRE ATT&amp;CK™ <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+		<script src="../../../assets/js/prism.min.js" defer></script>
+		<script src="../../../assets/js/prism-line-numbers.min.js" defer></script>
+		<script src="../../../assets/js/prism-python.min.js" defer></script>
+		<script src="../../../assets/js/glightbox.min.js" defer></script>
+		<script src="../../../assets/js/blog-init.js" defer></script>
+	</body>
+</html>

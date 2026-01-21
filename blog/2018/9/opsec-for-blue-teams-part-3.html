@@ -1,0 +1,159 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>OPSEC for Blue Teams - Sandboxes &amp; Secure Communications - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Part 3 of the OPSEC for Blue Teams series covering sandboxes, secure communications, and information sharing when dealing with targeted attacks." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="OPSEC for Blue Teams - Sandboxes &amp; Secure Communications - MB Secure" />
+		<meta property="og:description" content="Part 3 of the OPSEC for Blue Teams series covering sandboxes, secure communications, and information sharing when dealing with targeted attacks." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-3.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-3.html" />
+		<meta property="article:published_time" content="2018-09-28" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "OPSEC for Blue Teams - Sandboxes & Secure Communications",
+			"datePublished": "2018-09-28",
+			"dateModified": "2018-09-28",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"description": "Part 3 of the OPSEC for Blue Teams series covering sandboxes, secure communications, and information sharing when dealing with targeted attacks."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">28 September 2018</span>
+							</div>
+							<h1>OPSEC for Blue Teams - Sandboxes &amp; Secure Communications</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">This will be the last blog in this series on OPSEC for Blue Teams. I will share some of my thoughts on sandboxes, secure communications and sharing of info &amp; data when dealing with a targeted attack.</p>
+
+							<ul>
+								<li>Part 1: <a href="../../../blog/2018/9/opsec-for-blue-teams-part-1.html">OPSEC for Blue Teams - Losing Defender's Advantage</a></li>
+								<li>Part 2: <a href="../../../blog/2018/9/opsec-for-blue-teams-part-2.html">OPSEC for Blue Teams - Testing PassiveTotal &amp; VirusTotal</a></li>
+							</ul>
+
+							<h2>Sandboxes</h2>
+
+							<p>Performing dynamic analysis by running a malware sample in a sandbox can provide you with valuable information. Again, keep in mind that certain OPSEC rules are less strict for non-targeted attacks. Such as sandboxes with internet connectivity.</p>
+
+							<h3>VirusTotal</h3>
+
+							<p>VirusTotal is doing much more than scanning your malware sample with multiple AV solutions. Behavioural information is added that comes from sandboxes. However, do not upload malware samples to VirusTotal and similar solutions. An adversary knows the hash(es) of the malware and can easily find out if they are uploaded. This kind of monitoring can often be automated using APIs offered by these services or by creating a wrapper around the web GUI.</p>
+
+							<h3>Simulated Internet</h3>
+
+							<p>Having internet connectivity on your sandbox can be a risk, more on this later. A good option is to have simulated internet. For example, <a href="https://www.inetsim.org/" target="_blank" rel="noopener noreferrer">INetSim</a> and <a href="https://github.com/fireeye/flare-fakenet-ng" target="_blank" rel="noopener noreferrer">FakeNet-NG</a> can provide this when integrated with your sandbox setup (there are also third-party sandbox services having these solutions integrated). INetSim and FakeNet-NG provide the capability to simulate various internet services such as: DNS, HTTP/S, IRC and many more. No traffic is actually going to the internet, but is simulated by these fake internet services which also allows you to configure how to respond to requests. Among other things, simulated internet can provide you with the first request the malware sample will sent. Such as the C2 domain or URL from which the second-stage payload is downloaded. Subsequent requests may fail if the malware gets confused by an unexpected response.</p>
+
+							<h3>Internet Connectivity</h3>
+
+							<p>Be very careful with sandboxes with an internet connection. This includes your own sandbox and third-party solution/services (some allow you to disable internet access). I am aware that not having internet on a sandbox downgrade much of its strength and functionality. But having a sandbox with internet can result in sending signals that can be picked up by the adversary. Some of these signals overlap with the ones already discussed for OSINT. But also things like a hostname that is not corresponding with the naming convention of your company, and you are dealing with malware sending back the sandbox's hostname to the C2 server.</p>
+
+							<p>When you do really need the malware to connect to the internet, create your own sandbox (or be very sure you are not dealing with a targeted attack). Having a sandbox on which you have complete control is always a good idea. The main point here is to have a sandbox that shares as much characteristics as possible with a real company's endpoint. Make it look as normal as possible. For example, think about the following:</p>
+
+							<ul>
+								<li>Use real hardware instead of a virtual machine.</li>
+								<li>Run the same operating system and version.</li>
+								<li>Keep the system up to date.</li>
+								<li>Make it look like the sandbox is actually used by having traces of user activity, but do not have any personal/production data on it.</li>
+								<li>The hostname of the sandbox should correspond with the company's naming convention.</li>
+								<li>The same applies for the username that is logged on to the sandbox.</li>
+								<li>When connecting to the internet have its external IP look normal.</li>
+								<li>Very important, make it technically impossible for your sandbox to communicate with your production IT infrastructure.</li>
+								<li>Do not connect to your sandbox from a production system, use different hardware for this (i.e. a system not connected in any way to your corporate network).</li>
+							</ul>
+
+							<h2>Secure Communications and Sharing of Info &amp; Data</h2>
+
+							<p>OPSEC on how to share information within the blue team and stakeholders (board of directors, security officers, etc.) becomes extra important when dealing with a targeted attack. Imagine the adversary has access to all information from the blue team on your current investigation. You now have lost your advantage as a defender.</p>
+
+							<p>If you are convinced a security incident is a targeted attack on your company. The attack has been going on for a while, you have not detected the adversary very early in the kill chain, and before they have had any time to move up in the kill chain (on the latter you should be very certain). You should take extra precautionary measures on how you share information concerning the incident within the blue team and to stakeholders. Assume that things like Active Directory and mail servers are compromised and the adversary is reading your communications.</p>
+
+							<p>Think about the following:</p>
+
+							<ul>
+								<li>Having systems you can use for performing parts of your investigation, communications and sharing of information that are not connected in any way to your corporate network. Obviously, you are still bound to use many of the tools you have within the blue team, running on the company's IT infrastructure, to be able to perform the investigation. For example, using Splunk to perform big parts of the analysis and an EDR solution to get additional information from systems.</li>
+								<li>Secure communication channels that are completely separate from your company's IT infrastructure. Think about instant messaging (e.g. Signal) and a secure platform to share documents, notes and data.</li>
+							</ul>
+
+							<p>A topic I would like to explore further: what is the best way, taking feasibility into account, to make sure that all blue team systems and tools (client endpoints, data lake, security monitoring solutions, etc.) can be trusted, up to a certain level, within a compromised IT environment.</p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2018/12/tahiti-threat-hunting-methodology.html" class="prev"><span class="arrow">←</span> TaHiTI - Threat Hunting Methodology</a>
+							<a href="../../../blog/2018/9/opsec-for-blue-teams-part-2.html" class="next">OPSEC for Blue Teams - Part 2 <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+	</body>
+</html>

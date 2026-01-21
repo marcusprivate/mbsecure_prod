@@ -1,0 +1,66 @@
+[tool.pytest.ini_options]
+# Pytest configuration for MB Secure website tests
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Default options
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+
+# Markers
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "visual: marks visual regression tests",
+]
+
+# Playwright configuration
+# Note: These are default values, can be overridden via command line
+
+[tool.playwright]
+# Default timeout for actions (ms)
+timeout = 30000
+
+[project]
+name = "mbsecure-tests"
+version = "1.0.0"
+description = "Automated tests for MB Secure website"
+readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-playwright>=0.4.0",
+    "playwright>=1.40.0",
+    "requests>=2.28.0",
+    "beautifulsoup4>=4.11.0",
+    "pillow>=9.0.0",
+    "pytest-html>=4.0.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | venv
+    | _build
+    | buck-out
+    | build
+    | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100

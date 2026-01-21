@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>OPSEC for Blue Teams - Testing PassiveTotal &amp; VirusTotal - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Part 2 of the OPSEC for Blue Teams series testing PassiveTotal and VirusTotal for signals that can be picked up by adversaries." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="OPSEC for Blue Teams - Testing PassiveTotal &amp; VirusTotal - MB Secure" />
+		<meta property="og:description" content="Part 2 of the OPSEC for Blue Teams series testing PassiveTotal and VirusTotal for signals that can be picked up by adversaries." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-2.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2018/9/opsec-for-blue-teams-part-2.html" />
+		<meta property="article:published_time" content="2018-09-27" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "OPSEC for Blue Teams - Testing PassiveTotal & VirusTotal",
+			"datePublished": "2018-09-27",
+			"dateModified": "2018-09-27",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"description": "Part 2 of the OPSEC for Blue Teams series testing PassiveTotal and VirusTotal for signals that can be picked up by adversaries."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">27 September 2018</span>
+							</div>
+							<h1>OPSEC for Blue Teams - Testing PassiveTotal &amp; VirusTotal</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">This second blog in the series on OPSEC for Blue Teams is about testing tools used to get context and/or OSINT on domains and IPs. While performing these tests it also showed results that can be interesting for Red Teams.</p>
+
+							<ul>
+								<li>Part 1: <a href="../../../blog/2018/9/opsec-for-blue-teams-part-1.html">OPSEC for Blue Teams - Losing Defender's Advantage</a></li>
+								<li>Part 3: <a href="../../../blog/2018/9/opsec-for-blue-teams-part-3.html">OPSEC for Blue Teams - Sandboxes &amp; Secure Communications</a></li>
+							</ul>
+
+							<h2>Tool Testing - PassiveTotal &amp; VirusTotal</h2>
+
+							<p>Remember we want to have a tool that does not sent any signals that can be picked up by an adversary. If we must send signals, it has to be something the adversary expect to see.</p>
+
+							<p>I often use PassiveTotal for getting context and some OSINT. I wondered how passive it actually was. I started by asking a question about this to PassiveTotal for which I received the following response:</p>
+
+							<blockquote>
+								<p>In order to perform "true" passive request you would need to adjust some account settings, which is under "Sources" in your Account Settings: </br>1) Disable third-party pDNS sources (<strong>VirusTotal</strong>, <strong>Kaspersky</strong>) - both do an active lookup for a domain that does not appear in their repository </br>2) Disable the <strong>Pingly</strong> source as this is RiskIQ / PassiveTotal Active resolver</p>
+							</blockquote>
+
+							<p>I followed up by performing some tests, for which I first created a test infrastructure:</p>
+
+							<ul>
+								<li>I registered a new domain.</li>
+								<li>Created two VPS instances with both a unique public IP address:
+									<ul>
+										<li>Installed the Apache webserver and let it listen on port 80.</li>
+										<li>Configured them to be an authoritative nameserver for my new domain using Bind in a master/slave setup.</li>
+										<li>Enable logging for Bind and adding the HTTP host header to the logs of Apache.</li>
+									</ul>
+								</li>
+								<li>I pointed the NS records for my new domain to my own nameservers.</li>
+								<li>The PTR records for both VPS instances I pointed to a unique subdomain that will also be resolved at my own nameservers (<code>rev1.example.com</code> and <code>rev2.example.com</code>).</li>
+								<li>For testing IP addresses I created a new VPS. I did this because I needed to be sure to have reliable results and therefore having an IP which had no recent relation to any of the subdomain names from previous tests.</li>
+							</ul>
+
+							<p>For every test performed I created a unique subdomain and pointing the A record to one of my VPS instances. Then I used this subdomain within PassiveTotal and monitored the Bind and Apache logs for any activities related to the subdomain.</p>
+
+							<p>I was very pleased to see no activity at all when I disabled VirusTotal, Kaspersky and Pingly. When enabling all of them I immediately saw activities within the logs of Bind (for multiple type of DNS records) and none for Apache. Further testing showed enabling VirusTotal did not result in any activities within my logs. I asked a follow-up question on this to PassiveTotal, in which they provided the following answer:</p>
+
+							<blockquote>
+								<p>While they do not do an on demand active lookup - if they have a miss - i.e. they don't have data on the domain or IP in question, they will trigger a lookup to close their collection gap, so it could take 24hrs to propagate. This may have changed over the years though.</p>
+							</blockquote>
+
+							<p>In my logs I had not seen any DNS queries for domains used in my tests, for which the source VirusTotal was enabled in PassiveTotal, after 24 hours or even longer. This tells me the behaviour of VirusTotal has changed. I decided to perform more testing on VirusTotal itself:</p>
+
+							<ul>
+								<li>Of course, doing a scan on a domain or IP shows activities within the logs of Bind (query for the DNS A and AAAA record). Within the Apache logs it was pretty easy to track this to VirusTotal by having "virustotalcloud" included in the User-Agent.</li>
+								<li>Doing a search with the web GUI of VirusTotal showed activities within the logs of Bind (only a query for the DNS A record).</li>
+								<li>When executing a <a href="https://developers.virustotal.com/reference#domain-report" target="_blank" rel="noopener noreferrer">domain report</a> using the API, I saw no activities at all. The same holds for the <a href="https://developers.virustotal.com/reference#ip-address-report" target="_blank" rel="noopener noreferrer">IP address report</a>. As expected, I saw no DNS queries for the subdomain by VirusTotal after 24 hours and longer.</li>
+							</ul>
+
+							<p>Based on the test results I am pretty sure PassiveTotal uses the domain/IP report API calls for getting info on domains and IPs. I also noticed when first doing a scan on a domain using VirusTotal, new data is shown in PassiveTotal having VirusTotal as the source.</p>
+
+							<h2>Monitoring by an Adversary</h2>
+
+							<p>It would be interesting to perform more research on monitoring signals as an adversary. For example: see which behaviours are seen regarding DNS resolution when domains are not shared with any security vendor. Like I did on purpose during my testing.</p>
+
+							<p>I observed a great amount of DNS queries for the PTR records by a very large group of different IPs and parties. Therefore it may be less useful for an adversary to monitor on these. Or could this be turned into useful monitoring by focusing on IPs from security vendors? For now I did not look into this.</p>
+
+							<p>Another thing I noticed, is a great amount of DNS queries for subdomains that do not exist. Again, by a large number of IPs and parties. It can therefore be of great help to an adversary to use a subdomain that does look legit but has a very low chance in being guessed. It would also be interesting to research if there are good ways to filter out the noise (such as domain name scanners that come along).</p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2018/9/opsec-for-blue-teams-part-3.html" class="prev"><span class="arrow">←</span> OPSEC for Blue Teams - Part 3</a>
+							<a href="../../../blog/2018/9/opsec-for-blue-teams-part-1.html" class="next">OPSEC for Blue Teams - Part 1 <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+	</body>
+</html>

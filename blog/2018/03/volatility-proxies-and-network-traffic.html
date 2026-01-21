@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>Volatility: proxies and network traffic - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Learn how to use Volatility and strings to identify which process is communicating with a suspicious IP when dealing with non-transparent proxies." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="Volatility: proxies and network traffic - MB Secure" />
+		<meta property="og:description" content="Learn how to use Volatility and strings to identify which process is communicating with a suspicious IP when dealing with non-transparent proxies." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2018/03/volatility-proxies-and-network-traffic.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2018/03/volatility-proxies-and-network-traffic.html" />
+		<meta property="og:image" content="https://mbsecure.nl/images/blog/lab_setup.png" />
+		<meta property="article:published_time" content="2018-03-19" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "Volatility: proxies and network traffic",
+			"datePublished": "2018-03-19",
+			"dateModified": "2018-03-19",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"image": "https://mbsecure.nl/images/blog/lab_setup.png",
+			"description": "Learn how to use Volatility and strings to identify which process is communicating with a suspicious IP when dealing with non-transparent proxies."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+		<link rel="stylesheet" href="../../../assets/css/prism-tomorrow.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/glightbox.min.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">19 March 2018</span>
+							</div>
+							<h1>Volatility: proxies and network traffic</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">When dealing with an incident it can often happen that your starting point is a suspicious IP. For example, because the IP is showing a suspicious beaconing traffic pattern (i.e. malware calling home to its C2 server for new instructions). One of the questions you will have is what is causing this traffic. It can really help your investigation when you know which process (or sometimes processes) are involved. However, answering this question is challenging when you have to deal with the following:</p>
+
+							<ul>
+								<li>An IT infrastructure where a non-transparent proxy is used for all outgoing network traffic (this is the case in many enterprise networks).</li>
+								<li>No other sources, except a memory dump, are available to you where you could find this information.</li>
+							</ul>
+
+							<p>In this blog post I will explain how you can solve this with Volatility and strings.</p>
+
+							<h2>Lab Setup</h2>
+
+							<p>I have created a small lab setup to simulate an infrastructure where communications to the internet need to go through a web proxy.</p>
+
+							<figure>
+									<picture>
+										<source srcset="../../../images/blog/lab_setup.webp" type="image/webp">
+										<img src="../../../images/blog/lab_setup.png" alt="Lab setup diagram" class="blog-image" />
+									</picture>
+								</figure>
+							<p>The host with IP <code>172.31.0.250</code> is the internal web proxy server. This server forwards the traffic to the gateway and sends back the result to the client. The endpoint with IP <code>172.31.16.50</code> is used to perform our memory forensics on.</p>
+
+							<h3>Generating Network Traffic</h3>
+
+							<p>To make it as realistic as possible, the endpoint <code>172.31.16.50</code> is used to setup multiple connections to hosts on the internet using different applications. One of these applications is connecting to IP <code>35.178.122.152</code>. The intention is to identify which process is responsible for communicating with this IP.</p>
+
+							<h2>The Problem</h2>
+
+							<h3>The Effect of a Non-Transparent Proxy on Network Connections</h3>
+
+							<p>The goal for this blog is not to explain in detail how a web proxy works. If you want to have more details about this topic, I can recommend reading the following blog post: <a href="https://parsiya.net/blog/2016-07-28-thick-client-proxying---part-6-how-https-proxies-work/" target="_blank" rel="noopener noreferrer">https://parsiya.net/blog/2016-07-28-thick-client-proxying---part-6-how-https-proxies-work/</a></p>
+
+							<p>When an endpoint wants to communicate to the internet within an IT infrastructure that requires all internet traffic have to pass a proxy. It will ask the internal web proxy server to connect to the external host and send back the results.</p>
+
+							<p>Applications communicating to the internet over a non-transparent proxy are not directly communicating with the host on the internet, but ask the proxy to do that. That is why you will not see something like the following within your network connections:</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/netstat_without_proxy.webp" type="image/webp">
+											<img src="../../../images/blog/netstat_without_proxy.png" alt="Netstat output without proxy" class="blog-image" />
+										</picture>
+							</figure>
+
+							<p>In the above <code>netstat</code> output it is pretty easy to identify which process did setup a connection to which exact external IP and port (e.g. <code>Chrome.exe</code> communicates to the external IP <code>108.177.126.138</code> over port 443). However, when dealing with a non-transparent proxy you will see something completely different.</p>
+
+							<p>These are the same network connections using the same applications. But this time all external connections are going through a proxy. Therefore all external communications seems to be going to the internal host <code>172.31.0.250</code> (the internal proxy server) over port 8080:</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/netstat_with_proxy.webp" type="image/webp">
+											<img src="../../../images/blog/netstat_with_proxy.png" alt="Netstat output with proxy" class="blog-image" />
+										</picture>
+							</figure>
+
+							<p>The Volatility plugin <code>netscan</code> will show similar output from which it seems that all outgoing connections are to internal hosts <code>172.31.0.250</code>:</p>
+
+							<figure>
+										<a href="../../../images/blog/vol_netscan.webp" class="glightbox" data-gallery="blog">
+											<picture>
+												<source srcset="../../../images/blog/vol_netscan.webp" type="image/webp">
+												<img src="../../../images/blog/vol_netscan.png" alt="Volatility netscan output" class="blog-image" />
+											</picture>
+										</a>
+							</figure>
+
+							<h3>Solving the Problem</h3>
+
+							<p>Let's have a look at how to pinpoint a particular IP address to a process using Volatility and strings. Instead of strings you could also use another utility, as long as the output contains the decimal byte offset and its corresponding string.</p>
+
+							<h4>Strings</h4>
+
+							<p>You have to start off by locating all physical memory address locations of the IP <code>35.178.122.152</code> within your memory dump (remember that this was the IP related to the suspicious beaconing pattern). You can use Linux strings for this with 2 passes to include both ASCII and (little-endian) Unicode strings (<code>-el</code>). You set the parameter <code>-td</code> strings to include the byte offset in decimal format for every string. You will later need this offset for Volatility. The output of strings is written to the file <code>out-linux-strings</code>:</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/linux_strings.webp" type="image/webp">
+											<img src="../../../images/blog/linux_strings.png" alt="Linux strings command" class="blog-image" />
+										</picture>
+							</figure>
+
+							<p>With some luck it could be the case that grepping for your suspicious IP within the strings output, that you can already spot the source without the need to use Volatility. Take note that this will not always be the case. Just grepping for the IP or using <a href="https://github.com/simsong/bulk_extractor" target="_blank" rel="noopener noreferrer">Bulk extractor</a> to search through your memory dump can be of much help to find out more.</p>
+
+							<p>From the file <code>out-linux-strings</code> you grep all the lines that have a match on the IP <code>35.178.122.152</code> and output it to another file <code>search-strings</code>:</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/grep_on_ip.webp" type="image/webp">
+											<img src="../../../images/blog/grep_on_ip.png" alt="Grep on IP address" class="blog-image" />
+										</picture>
+							</figure>
+
+							<h4>Volatility</h4>
+
+							<p>You will use the file <code>search-strings</code> as input for the Volatility plugin <code>strings</code>. This plugin expects as input a file in the form <code>&lt;decimal_offset&gt;:&lt;string&gt;</code>, or <code>&lt;decimal_offset&gt; &lt;string&gt;</code>. The plugin will output the corresponding process ID and virtual address where the string can be found within the memory dump. Write the output of Volatility to the file <code>out-strings</code>:</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/vol_strings.webp" type="image/webp">
+											<img src="../../../images/blog/vol_strings.png" alt="Volatility strings plugin output" class="blog-image" />
+										</picture>
+							</figure>
+
+							<p>With some basic Linux tools you can create a list of involved processes and do a count on number of occurrences. You can clearly see that process with ID <code>3008</code> is having a major role with 116 hits regarding the communications to IP <code>35.178.122.152</code> (the entries with <code>FREE</code> can be ignored as it is related to free memory which is no longer associated with a process. It can however contain valuable information).</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/pids.webp" type="image/webp">
+											<img src="../../../images/blog/pids.png" alt="Process ID count" class="blog-image" />
+										</picture>
+							</figure>
+
+							<p>When using the Volatility plugin <code>pslist</code> you can also find the corresponding process name <code>taskhostex.exe</code> for PID <code>3008</code>:</p>
+
+							<figure>
+										<picture>
+											<source srcset="../../../images/blog/vol_pslist.webp" type="image/webp">
+											<img src="../../../images/blog/vol_pslist.png" alt="Volatility pslist output" class="blog-image" />
+										</picture>
+							</figure>
+
+							<p><strong>Mission accomplished!</strong></p>
+
+							<p>Please tell me if you have another way to solve this problem that involves memory forensics.</p>
+
+							<div class="blog-update-notice">
+								<strong>Update:</strong> Andrew Case (Volatility Core Developer) replied with another way on how you can try to solve this using the Volatility plugin <code>yarascan</code>: <a href="https://twitter.com/attrc/status/975675012307935232" target="_blank" rel="noopener noreferrer">https://twitter.com/attrc/status/975675012307935232</a>
+							</div>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2018/06/hunting-with-ja3.html" class="prev"><span class="arrow">←</span> Hunting with JA3</a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+		<script src="../../../assets/js/glightbox.min.js" defer></script>
+		<script src="../../../assets/js/blog-init.js" defer></script>
+	</body>
+</html>

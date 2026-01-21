@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>Bypass client-side generated HTTP security headers - MB Secure</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+		<meta name="description" content="Learn how to bypass client-side generated HTTP security headers during penetration testing using Burp Suite extensions." />
+		
+		<!-- Open Graph -->
+		<meta property="og:title" content="Bypass client-side generated HTTP security headers - MB Secure" />
+		<meta property="og:description" content="Learn how to bypass client-side generated HTTP security headers during penetration testing using Burp Suite extensions." />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://mbsecure.nl/blog/2018/7/bypass-client-side-generated-http-security-headers.html" />
+		<link rel="canonical" href="https://mbsecure.nl/blog/2018/7/bypass-client-side-generated-http-security-headers.html" />
+		<meta property="article:published_time" content="2018-07-11" />
+		<meta property="article:author" content="Marcus Bakker" />
+		
+		<!-- RSS Autodiscovery -->
+		<link rel="alternate" type="application/rss+xml" title="MB Secure Blog RSS Feed" href="../../../blog/feed.xml" />
+		
+		<link rel="icon" type="image/x-icon" href="../../../images/favicon.ico" />
+		
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": "Bypass client-side generated HTTP security headers",
+			"datePublished": "2018-07-11",
+			"dateModified": "2018-07-11",
+			"author": {
+				"@type": "Person",
+				"name": "Marcus Bakker",
+				"url": "https://www.linkedin.com/in/marcusbakker"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "MB Secure",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://mbsecure.nl/images/logo.png"
+				}
+			},
+			"description": "Learn how to bypass client-side generated HTTP security headers during penetration testing using Burp Suite extensions."
+		}
+		</script>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans+Condensed:wght@700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="../../../assets/css/fontawesome-all.min.css" />
+		<link rel="stylesheet" href="../../../assets/css/main.css" />
+	</head>
+	<body class="blog-post-page">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+
+			<!-- Nav -->
+				<nav id="nav" aria-label="Main navigation">
+					<!-- Nav injected by nav.js -->
+				</nav>
+
+			<main id="main-content">
+				<!-- Blog Post -->
+				<article class="blog-post spa-section">
+					<div class="container">
+						<header class="blog-post-header">
+							<div class="blog-meta">
+								<span class="blog-date">11 July 2018</span>
+							</div>
+							<h1>Bypass client-side generated HTTP security headers</h1>
+						</header>
+
+						<div class="blog-post-content">
+							<p class="lead">Every now and then when doing a security test on a web application I have to deal with client-side generated HTTP headers that are there for security reasons. These headers can cause problems during a security test. Fortunately, they can easily be bypassed using Burp Suite.</p>
+
+							<h2>HTTP "Security" Header</h2>
+
+							<p>Let me explain the concept of a HTTP security header using a header with the name <code>Auth-code</code>, that is being added by the web browser itself (i.e. think about JavaScript running in the browser). The header value which is calculated involves the contents of the HTTP request message. This can be as simple as calculating a hash over the body within a HTTP POST request message.</p>
+
+							<p>The web application will check the value of the <code>Auth-code</code> every time a HTTP request is received. If the value received does not match the expected result, the web application will deny the HTTP request and most likely send back an error message to the web browser. E.g.: "Invalid input provided".</p>
+
+							<h2>False Sense of Security</h2>
+
+							<p>These kind of security mechanisms does not add any real security to the web application. An adversary has full control on what happens on the client (i.e. web browser) and therefore what will be send to the web application. Because a header such as <code>Auth-code</code> is calculated and added by the client itself, an adversary also has the ability to make sure the <code>Auth-code</code> always has the correct value.</p>
+
+							<p>Security checks should always be performed on the web application server and not be fully depended on code that is running within the browser.</p>
+
+							<h3>Example of Exploitation</h3>
+
+							<p>Imagine having a web application that relies for an important part of its security on a custom header called <code>Auth-code</code>. The value for the header is calculated and added to the HTTP request using JavaScript by the client itself.</p>
+
+							<p>This web application has a webpage that shows user personal details such as name, address, email, etc. When accessing this webpage a user ID is provided within the parameter <code>UserID</code>, contained within the body of the HTTP request. Manipulating the user ID (e.g. by means of a proxy) will result in an error at the web application. After all the provided <code>Auth-code</code> will not match up with the expected value.</p>
+
+							<p>All we have to do to bypass the security check in the above case is making sure the <code>Auth-code</code> we sent will always match the content of the body within the HTTP request. Every time we manipulate a parameter this will require re-calculating the value for the <code>Auth-code</code>. Of course we first need to know how this value is being calculated and under which circumstances it is being used. Knowing that, we can make sure to always include the correct value.</p>
+
+							<p>When doing a security test it can be quite cumbersome if re-calculating the <code>Auth-code</code> value has to be done manually. Or simply not possible when you want to take advantage of the active scanner within Burp. We need a way that we can automate this process. We can achieve this by writing our own extension for Burp Suite.</p>
+
+							<h2>How to Bypass Using Burp Suite</h2>
+
+							<p>Burp Suite allows expanding its functionality with extensions. Those can be written in Java, Python or Ruby. I choose to write it in Python. This extension will make sure that for every HTTP request being send the custom security header (e.g. <code>Auth-code</code>) will match the expected value. It will work for all requests being send through Burp Suite: Repeater, Intruder, Active scanner, etc.</p>
+
+							<h3>Burp Extension</h3>
+
+							<p>On my GitHub page you will find a Burp extension that serves as a template for bypassing a custom security header. Within the Python code I have added comments that should help you in customising the code to fit the web application you are testing.</p>
+
+							<p><a href="https://github.com/marcusbakker/Burp-Suite-Extensions" target="_blank" rel="noopener noreferrer">https://github.com/marcusbakker/Burp-Suite-Extensions</a></p>
+						</div>
+
+						<!-- Prev/Next Navigation -->
+						<nav class="blog-post-nav" aria-label="Blog post navigation">
+							<a href="../../../blog/2018/9/opsec-for-blue-teams-part-1.html" class="prev"><span class="arrow">←</span> OPSEC for Blue Teams - Part 1</a>
+							<a href="../../../blog/2018/06/hunting-with-ja3.html" class="next">Hunting with JA3 <span class="arrow">→</span></a>
+						</nav>
+
+						<footer class="blog-post-footer">
+							<a href="../../../blog/feed.xml" class="blog-rss-link">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M128.081 415.959c0 35.369-28.672 64.041-64.041 64.041S0 451.328 0 415.959s28.672-64.041 64.041-64.041 64.04 28.673 64.04 64.041zm175.66 47.25c-8.354-154.6-132.185-278.587-286.95-286.95C7.656 175.765 0 183.105 0 192.253v48.069c0 8.415 6.49 15.472 14.887 16.018 111.832 7.284 201.473 96.702 208.772 208.772.547 8.397 7.604 14.887 16.018 14.887h48.069c9.149.001 16.489-7.655 15.995-16.79zm144.249.288C439.596 229.677 251.465 40.445 16.503 32.01 7.473 31.686 0 38.981 0 48.016v48.068c0 8.625 6.835 15.645 15.453 15.999 191.179 7.839 344.627 161.316 352.465 352.465.353 8.618 7.373 15.453 15.999 15.453h48.068c9.034-.001 16.329-7.474 16.005-16.504z"/></svg>
+								Blog RSS
+							</a>
+						</footer>
+					</div>
+				</article>
+			</main>
+
+			<!-- Footer -->
+				<footer id="footer"></footer>
+
+		</div>
+
+		<!-- Scripts -->
+		<script src="../../../assets/js/browser.min.js" defer></script>
+		<script src="../../../assets/js/breakpoints.min.js" defer></script>
+		<script src="../../../assets/js/util.js" defer></script>
+		<script src="../../../assets/js/site-config.js"></script>
+		<script src="../../../assets/js/nav.js"></script>
+		<script src="../../../assets/js/main.js" defer></script>
+		<script src="../../../assets/js/footer.js" defer></script>
+	</body>
+</html>
